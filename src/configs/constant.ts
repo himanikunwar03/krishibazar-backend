@@ -6,7 +6,7 @@ export const PORT = process.env.PORT || 8088;
 export const MOCK_DB = process.env.MOCK_DB || "mock";
 export const MONGODB_URI = process.env.MONGODB_URI
 
-    || "mongodb://localhost:27017/class36b";
+    || "mongodb://localhost:27017/krishi-bazar-web";
 export const SECRET_KEY = process.env.SECRET_key
     || "meroscretjwtkey";
 // same as
