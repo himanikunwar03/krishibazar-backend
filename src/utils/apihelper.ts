@@ -1,13 +1,11 @@
-export {}; 
-// Consistent API
-const res_example = {
+// API response example
+const res = {
     "status": 200,
-    "data": {
-        // .. data
-    },
-    "message": "Success",
+    "success": true,
+    "message": "Products fetched successfully",
+    "data": [],
     "meta": {
-        // pagination, etc
+        // pagination
         "page": 1,
         "limit": 10,
         "total": 100
@@ -19,26 +17,28 @@ export interface PaginationMeta {
     limit: number;
     total: number;
 }
+
 export interface ApiResponse<T> {
     status: number;
-    data: T;
     success: boolean;
     message: string;
-    meta?: PaginationMeta;
+    data: T;
+    meta?: PaginationMeta; // optional
 }
+
 export class ApiResponseHelper {
     static success<T>(
         res: Response,
         data: T,
-        status: number = 200,
         message: string = "Success",
+        status: number = 200,
         meta?: PaginationMeta
-    ) {
+    ): Response {
         const response: ApiResponse<T> = {
             status,
-            data,
-            message,
             success: true,
+            message,
+            data,
             meta
         }
         return res.status(status).json(response);
@@ -46,12 +46,14 @@ export class ApiResponseHelper {
     static error(
         res: Response,
         message: string = "Error",
-        status: number = 500
-    ) {
-        const response: Omit<ApiResponse<any>, 'data'> = {
+        status: number = 500,
+        data?: null
+    ): Response {
+        const response: ApiResponse<null> = {
             status,
+            success: false,
             message,
-            success: false
+            data: data ?? null
         }
         return res.status(status).json(response);
     }

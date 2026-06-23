@@ -1,56 +1,80 @@
-export {}; 
-
-
 import { UserMongoRepository } from "../repositories/user.repository";
-import { CreateUserDto, LoginUserDto } from "../dtos/user.dto";
-import { HttpException } from "../exceptions/http_exception";
-import bycrypt from "bcryptjs"; // to hash password
+import { CreateUserDto, LoginUserDto, UpdateUserDto } from "../dtos/user.dto";
 import { IUser } from "../models/user.model";
-// jwt for token generation
+import { HttpException } from "../exceptions/http_exception";
+import bycryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { SECRET_KEY } from "../configs/constant";
 
 const userRepository = new UserMongoRepository();
+
 export class UserService {
-    async createUser(userData: CreateUserDto) {
-        // Check if username or email already exists
-        const existingUserByUsername = await userRepository.findByUsername(
-            userData.username,
-        );
-        if (existingUserByUsername) {
-            throw new HttpException(400, "Username already exists");
-        }
-        const existingUserByEmail = await userRepository.findByEmail(userData.email);
-        if (existingUserByEmail) {
+    async createUser(userData: CreateUserDto): Promise<IUser> {
+        // validation
+        const existingEmail = await userRepository.getUserByEmail(userData.email);
+        if (existingEmail) {
             throw new HttpException(400, "Email already exists");
         }
-        // Hash the password before saving
-        const hashedPassword = await bycrypt.hash(userData.password, 10);
-        const userToCreate = {
+        if (userData.username) {
+            const existingUsername = await userRepository.getUserByUsername(userData.username);
+            if (existingUsername) {
+                throw new HttpException(400, "Username already exists");
+            }
+        }
+        // hash password
+        const hashedPassword = await bycryptjs.hash(userData.password, 10);
+        const userToCreate: Partial<IUser> = {
             ...userData,
-            password: hashedPassword,
+            password: hashedPassword
         };
-        const createdUser = await userRepository.create(userToCreate as any);
-        return createdUser;
+        const user = await userRepository.create(userToCreate);
+        return user;
     }
 
-    async loginUser(loginData: LoginUserDto) {
-        const user = await userRepository.findByEmail(loginData.email);
+    async loginUser(loginData: LoginUserDto){
+        const user = await userRepository.getUserByEmail(loginData.email);
         if (!user) {
-            throw new HttpException(400, "Invalid email or password");
+            throw new HttpException(400, "Invalid email");
         }
-        const isPasswordValid = await bycrypt.compare(
-            loginData.password,
-            user.password
-        ); // compare hashed password
+        const isPasswordValid = await bycryptjs.compare(
+            loginData.password,  // client password
+            user.password // database password
+        );
         if (!isPasswordValid) {
-            throw new HttpException(400, "Invalid email or password");
+            throw new HttpException(400, "Invalid password");
         }
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role }, // payload
             SECRET_KEY,
             { expiresIn: "30d" }
         );
-        return { user, token };
+        return { user, token }
+    }
+    async updateUser(id: string, userData: UpdateUserDto): Promise<IUser> {
+        const existingUser = await userRepository.getUserById(id);
+        if (!existingUser) {
+            throw new HttpException(404, "User not found");
+        }
+        if (userData.email && userData.email !== (existingUser as any).email) {
+            const existingEmail = await userRepository.getUserByEmail(userData.email);
+            if (existingEmail) {
+                throw new HttpException(400, "Email already exists");
+            }
+        }
+        if (userData.username && userData.username !== (existingUser as any).username) {
+            const existingUsername = await userRepository.getUserByUsername(userData.username);
+            if (existingUsername) {
+                throw new HttpException(400, "Username already exists");
+            }
+        }
+        if (userData.password) {
+            const hashedPassword = await bycryptjs.hash(userData.password, 10);
+            userData.password = hashedPassword;
+        }
+        const updatedUser = await userRepository.update(id, userData as any);
+        if (!updatedUser) {
+            throw new HttpException(500, "Failed to update user");
+        }
+        return updatedUser;
     }
 }

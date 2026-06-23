@@ -1,51 +1,94 @@
 import { UserService } from "../services/user.service";
-import { HttpException } from "../exceptions/http_exception";
 import { z } from "zod";
-import { CreateUserDto, LoginUserDto } from "../dtos/user.dto";
+import { CreateUserDto, LoginUserDto, UpdateUserDto } from "../dtos/user.dto";
 import { ApiResponseHelper } from "../utils/apihelper";
 import { Request, Response } from "express";
-
+import "../middlewares/authorized.middleware"; // Import to pick up type declaration
 const userService = new UserService();
+
 export class UserController {
     async createUser(req: Request, res: Response) {
-        try{
-            const parseResult = CreateUserDto.safeParse(req.body);
-            if(!parseResult.success){
-                throw new HttpException(
-                    400, 
-                    z.prettifyError(parseResult.error)
-                );
+        try {
+            const userData = CreateUserDto.safeParse(req.body);
+            if (!userData.success) {
+                return ApiResponseHelper
+                    .error(res, z.prettifyError(userData.error), 400);
             }
-            const createdUser = await userService.createUser(parseResult.data);
-            return ApiResponseHelper.success(res, createdUser, 201, "User created");
-        }catch(e: Error | unknown | any){
+            const user = await userService.createUser(userData.data);
+            return ApiResponseHelper.success(res, user, "User created successfully");
+        } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(
-                res, 
-                e?.message || "Failed to create user", 
-                e.status || 500
+                res,
+                error.message || "Internal Server Error",
+                error.status || 500
             );
         }
     }
-    async loginUser(req:Request, res:Response){
-        try{
-            const parseResult = LoginUserDto.safeParse(req.body);
-            if(!parseResult.success){
-                throw new HttpException(
-                    400,
-                    z.prettifyError(parseResult.error)
 
-                );
+    async loginUser(req: Request, res: Response) {
+        try {
+            const parsedData = LoginUserDto.safeParse(req.body);
+            if (!parsedData.success) {
+                return ApiResponseHelper
+                    .error(res, z.prettifyError(parsedData.error), 400);
             }
-            const {user, token } = await userService.loginUser(parseResult.data);
-            return ApiResponseHelper
-            .success(res, {user, token },200, "Login successful");
-
-        }catch(e:Error |unknown |any){
+            const { user, token } = await userService.loginUser(parsedData.data);
+            return ApiResponseHelper.success(res, { user, token }, "Login successful");
+        } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(
                 res,
-                e?.message || "Failed to login user",
-                e.status || 500
-            )
+                error.message || "Internal Server Error",
+                error.status || 500
+            );
         }
     }
+
+    async whoami(req: Request, res: Response) {
+        try {
+            const user = req.user;
+            if (!user) {
+                return ApiResponseHelper.error(res, "User not found", 404);
+            }
+            return ApiResponseHelper.success(res, user, "User details fetched successfully");
+        }
+        catch (error: Error | any | unknown) {
+            return ApiResponseHelper.error(
+                res,
+                error.message || "Internal Server Error",
+                error.status || 500
+            );
+        }
+    }
+
+    async updateUser(req: Request, res: Response) {
+        try {
+            if (!req.user) {
+                return ApiResponseHelper.error(res, "User not found", 404);
+            }
+            const userId = req.user._id;
+            console.log("User ID from token:", userId);
+            console.log("Uploaded file:", req.file);
+            const userData = UpdateUserDto.safeParse(req.body);
+            console.log("Parsed user data:", userData);
+            if (!userData.success) {
+                return ApiResponseHelper
+                    .error(res, z.prettifyError(userData.error), 400);
+            }
+
+            if (req.file) {
+                userData.data.profileImage = "/uploads/" + req.file.filename; // add profileImage path to body
+                console.log("Profile image path set to:", userData.data.profileImage);
+            }
+            const updatedUser = await userService.updateUser(userId, userData.data);
+            console.log("Updated user from service:", updatedUser);
+            return ApiResponseHelper.success(res, updatedUser, "User updated successfully");
+        } catch (error: Error | any | unknown) {
+            return ApiResponseHelper.error(
+                res,
+                error.message || "Internal Server Error",
+                error.status || 500
+            );
+        }
+    }
+
 }
