@@ -77,4 +77,75 @@ export class UserService {
         }
         return updatedUser;
     }
+
+    // Admin methods
+    async getAllUsers(page: number = 1, limit: number = 10, search?: string) {
+        const result = await userRepository.findWithPagination(page, limit, search);
+        return result;
+    }
+
+    async getUserById(id: string): Promise<IUser> {
+        const user = await userRepository.getUserById(id);
+        if (!user) {
+            throw new HttpException(404, "User not found");
+        }
+        return user;
+    }
+
+    async createUserByAdmin(userData: CreateUserDto): Promise<IUser> {
+        const existingEmail = await userRepository.getUserByEmail(userData.email);
+        if (existingEmail) {
+            throw new HttpException(400, "Email already exists");
+        }
+        if (userData.username) {
+            const existingUsername = await userRepository.getUserByUsername(userData.username);
+            if (existingUsername) {
+                throw new HttpException(400, "Username already exists");
+            }
+        }
+        const hashedPassword = await bycryptjs.hash(userData.password, 10);
+        const userToCreate: Partial<IUser> = {
+            ...userData,
+            password: hashedPassword
+        };
+        const user = await userRepository.create(userToCreate);
+        return user;
+    }
+
+    async updateUserByAdmin(id: string, userData: UpdateUserDto): Promise<IUser> {
+        const existingUser = await userRepository.getUserById(id);
+        if (!existingUser) {
+            throw new HttpException(404, "User not found");
+        }
+        if (userData.email && userData.email !== (existingUser as any).email) {
+            const existingEmail = await userRepository.getUserByEmail(userData.email);
+            if (existingEmail) {
+                throw new HttpException(400, "Email already exists");
+            }
+        }
+        if (userData.username && userData.username !== (existingUser as any).username) {
+            const existingUsername = await userRepository.getUserByUsername(userData.username);
+            if (existingUsername) {
+                throw new HttpException(400, "Username already exists");
+            }
+        }
+        if (userData.password) {
+            const hashedPassword = await bycryptjs.hash(userData.password, 10);
+            userData.password = hashedPassword;
+        }
+        const updatedUser = await userRepository.update(id, userData as any);
+        if (!updatedUser) {
+            throw new HttpException(500, "Failed to update user");
+        }
+        return updatedUser;
+    }
+
+    async deleteUser(id: string): Promise<boolean> {
+        const user = await userRepository.getUserById(id);
+        if (!user) {
+            throw new HttpException(404, "User not found");
+        }
+        const deleted = await userRepository.delete(id);
+        return deleted;
+    }
 }

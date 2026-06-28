@@ -15,6 +15,8 @@ export interface IUserRepository {
     update(id: string, user: Partial<IUser>)
         : Promise<IUser | null>;
     delete(id: string): Promise<boolean>;
+    // Admin methods
+    findWithPagination(page: number, limit: number, search?: string): Promise<{ users: IUser[], total: number, page: number, limit: number, totalPages: number }>;
 }
 export class UserMongoRepository implements IUserRepository {
     async findByUsername(username: string): Promise<IUser | null> {
@@ -58,5 +60,37 @@ export class UserMongoRepository implements IUserRepository {
     async delete(id: string): Promise<boolean> {
         const deletedUser = await User.findByIdAndDelete(id);
         return !!deletedUser; // return true if deleted, false if not found
+    }
+
+    async findWithPagination(page: number, limit: number, search?: string): Promise<{ users: IUser[], total: number, page: number, limit: number, totalPages: number }> {
+        const skip = (page - 1) * limit;
+        let query: any = {};
+        
+        if (search) {
+            query = {
+                $or: [
+                    { firstName: { $regex: search, $options: 'i' } },
+                    { lastName: { $regex: search, $options: 'i' } },
+                    { email: { $regex: search, $options: 'i' } },
+                    { username: { $regex: search, $options: 'i' } }
+                ]
+            };
+        }
+
+        const users = await User.find(query)
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 });
+
+        const total = await User.countDocuments(query);
+        const totalPages = Math.ceil(total / limit);
+
+        return {
+            users,
+            total,
+            page,
+            limit,
+            totalPages
+        };
     }
 }
