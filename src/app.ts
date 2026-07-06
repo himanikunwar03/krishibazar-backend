@@ -6,6 +6,8 @@ import path from "path";
 // routes
 import userRoutes from "./routes/user.route";
 import adminRoutes from "./routes/admin.route";
+import productRoutes from "./routes/product.route";
+import orderRoutes from "./routes/order.route";
 
 const app: Application = express();
 const corsOptions = {
@@ -22,6 +24,8 @@ app.use(express.urlencoded({ extended: true })); // x-www-form-urlencoded
 app.use("/uploads", express.static(path.join(__dirname, "../uploads"))); // serve static files from uploads folder
 app.use("/api/v1/auth", userRoutes); // user related routes
 app.use("/api/v1/admin", adminRoutes); // admin related routes
+app.use("/api/v1/products", productRoutes); // product related routes
+app.use("/api/v1/orders", orderRoutes); // order related routes
 
 // global api handler (at the last)
 app.use(

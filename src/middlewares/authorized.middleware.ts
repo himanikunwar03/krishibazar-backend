@@ -59,3 +59,23 @@ export const adminMiddleware = async (
         );
     }
 }
+
+export const farmerMiddleware = async (
+    req: Request, res: Response, next: NextFunction
+) => {
+    try {
+        if (!req.user) {
+            throw new HttpException(401, 'Unauthorized no user info');
+        }
+        if (req.user.role !== 'farmer') {
+            throw new HttpException(403, 'Forbidden not farmer');
+        }
+        return next();
+    } catch (err: Error | any) {
+        return ApiResponseHelper.error(
+            res,
+            err.message || 'Internal Server Error',
+            err.status || 500
+        );
+    }
+}

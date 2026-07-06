@@ -13,13 +13,13 @@ export interface IUser extends UserType, Document{
 
 const UserModelSchema:Schema = new Schema<IUser>(
     {
-     
+
         username: { type: String },
         email: { type: String, required: true, unique: true },
         firstName: { type: String, required: true },
         lastName: { type: String, required: true },
         password: { type: String, required: true },
-        role: { type: String, enum: ["admin", "user", "customer"], default: "user" },
+        role: { type: String, enum: ["user", "farmer"], default: "user" },
         profileImage: { type: String }
 
     }
