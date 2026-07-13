@@ -12,10 +12,12 @@ connectToMongoDB().then(() => {
     process.exit(1);
 });
 
+const port = typeof API_PORT === 'string' ? parseInt(API_PORT, 10) : API_PORT;
+
 app.listen(
-    API_PORT,  // start backend in this PORT
+    port, '0.0.0.0',  // start backend in this PORT on all interfaces
     () => {
-        console.log(`Server running on port ${API_PORT}`); // backtick
+        console.log(`Server running on port ${port}`); // backtick
     }
 ).on('error', (err) => {
     console.error("Server failed to start:", err);
