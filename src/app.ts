@@ -44,7 +44,16 @@ app.use(cors(corsOptions)); // enable CORS for all routes
 app.use(express.json()); // json input
 app.use(express.urlencoded({ extended: true })); // x-www-form-urlencoded
 
-app.use("/uploads", express.static(path.join(__dirname, "../uploads"))); // serve static files from uploads folder
+// serve static files from uploads folder (if it exists)
+const uploadsPath = path.join(__dirname, "../uploads");
+try {
+    const fs = require('fs');
+    if (fs.existsSync(uploadsPath)) {
+        app.use("/uploads", express.static(uploadsPath));
+    }
+} catch (e) {
+    console.warn("Uploads folder not found, static file serving disabled");
+}
 app.use("/api/v1/auth", userRoutes); // user related routes
 app.use("/api/v1/admin", adminRoutes); // admin related routes
 app.use("/api/v1/products", productRoutes); // product related routes
