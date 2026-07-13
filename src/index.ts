@@ -1,6 +1,6 @@
-import app from "./src/app";
-import { PORT as API_PORT } from "./src/configs/constant";
-import { connectToMongoDB } from "./src/database/mongodb";
+import app from "./app";
+import { PORT as API_PORT } from "./configs/constant";
+import { connectToMongoDB } from "./database/mongodb";
 
 connectToMongoDB();
 
