@@ -12,7 +12,29 @@ import favoriteRoutes from "./routes/favorite.route";
 
 const app: Application = express();
 const corsOptions = {
-    origin: process.env.CORS_ORIGIN?.split(",") || ["http://localhost:3000", "http://localhost:3001", "*"],
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+        const allowedOrigins = process.env.CORS_ORIGIN?.split(",") || ["http://localhost:3000", "http://localhost:3001", "*"];
+        
+        // Allow requests with no origin (like mobile apps, curl, etc.)
+        if (!origin) return callback(null, true);
+        
+        // Check if origin is in allowed list
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        
+        // Allow all vercel.app domains
+        if (origin.endsWith('.vercel.app')) {
+            return callback(null, true);
+        }
+        
+        // Allow custom domains
+        if (origin === 'https://himanikunwar.com.np' || origin === 'https://www.himanikunwar.com.np') {
+            return callback(null, true);
+        }
+        
+        callback(new Error('Not allowed by CORS'));
+    },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
