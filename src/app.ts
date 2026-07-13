@@ -41,6 +41,11 @@ const corsOptions = {
 }
 app.use(cors(corsOptions)); // enable CORS for all routes
 
+// Health check route
+app.get("/", (req, res) => {
+    res.json({ status: "ok", message: "Server is running" });
+});
+
 app.use(express.json()); // json input
 app.use(express.urlencoded({ extended: true })); // x-www-form-urlencoded
 
