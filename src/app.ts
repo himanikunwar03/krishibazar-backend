@@ -12,7 +12,7 @@ import favoriteRoutes from "./routes/favorite.route";
 
 const app: Application = express();
 const corsOptions = {
-    origin: ["http://localhost:3000", "http://localhost:3001", "*"],
+    origin: process.env.CORS_ORIGIN?.split(",") || ["http://localhost:3000", "http://localhost:3001", "*"],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
