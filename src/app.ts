@@ -8,6 +8,7 @@ import userRoutes from "./routes/user.route";
 import adminRoutes from "./routes/admin.route";
 import productRoutes from "./routes/product.route";
 import orderRoutes from "./routes/order.route";
+import favoriteRoutes from "./routes/favorite.route";
 
 const app: Application = express();
 const corsOptions = {
@@ -26,6 +27,7 @@ app.use("/api/v1/auth", userRoutes); // user related routes
 app.use("/api/v1/admin", adminRoutes); // admin related routes
 app.use("/api/v1/products", productRoutes); // product related routes
 app.use("/api/v1/orders", orderRoutes); // order related routes
+app.use("/api/v1/favorites", favoriteRoutes); // favorite related routes
 
 // global api handler (at the last)
 app.use(
