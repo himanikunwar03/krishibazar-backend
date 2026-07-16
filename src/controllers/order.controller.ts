@@ -21,7 +21,7 @@ export class OrderController {
             }
 
             const order = await orderService.createOrder(orderData.data, req.user._id);
-            return ApiResponseHelper.success(res, order, "Order created successfully");
+            return ApiResponseHelper.success(res, order, "Order created successfully", 201);
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(
                 res,
@@ -33,8 +33,21 @@ export class OrderController {
 
     async getOrderById(req: Request, res: Response) {
         try {
+            if (!req.user) {
+                return ApiResponseHelper.error(res, "User not authenticated", 401);
+            }
+
             const { id } = req.params;
             const order = await orderService.getOrderById(id);
+            
+            // Check if user is the order owner or a farmer with items in the order
+            const isOwner = (order as any).userId?.toString() === req.user!._id?.toString();
+            const hasFarmerItems = (order as any).items?.some((item: any) => item.farmerId?.toString() === req.user!._id?.toString());
+            
+            if (!isOwner && !hasFarmerItems && req.user!.role !== 'admin') {
+                return ApiResponseHelper.error(res, "You don't have permission to view this order", 403);
+            }
+            
             return ApiResponseHelper.success(res, order, "Order fetched successfully");
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(
@@ -56,7 +69,7 @@ export class OrderController {
 
             const result = await orderService.getUserOrders(req.user._id, page, limit);
             const response = {
-                data: result.orders,
+                orders: result.orders,
                 meta: {
                     page: result.page,
                     limit: result.limit,

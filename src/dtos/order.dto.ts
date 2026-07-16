@@ -21,7 +21,7 @@ export type CreateOrderDto = z.infer<typeof CreateOrderDto>;
 
 // Update Order Status DTO (for farmers/admins)
 export const UpdateOrderStatusDto = z.object({
-    status: z.enum(["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"]),
+    status: z.enum(["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"]).optional(),
     paymentStatus: z.enum(["pending", "paid", "failed"]).optional()
 });
 export type UpdateOrderStatusDto = z.infer<typeof UpdateOrderStatusDto>;

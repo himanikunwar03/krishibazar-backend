@@ -17,10 +17,10 @@ export class ProductController {
                 stock: req.body.stock ? parseInt(req.body.stock) : undefined,
             };
 
-            const userData = CreateProductDto.safeParse(body);
-            if (!userData.success) {
+            const productData = CreateProductDto.safeParse(body);
+            if (!productData.success) {
                 return ApiResponseHelper
-                    .error(res, z.prettifyError(userData.error), 400);
+                    .error(res, z.prettifyError(productData.error), 400);
             }
 
             if (!req.user) {
@@ -35,10 +35,10 @@ export class ProductController {
             console.log("User data:", req.user);
 
             if (req.file) {
-                userData.data.image = "/uploads/" + req.file.filename;
+                productData.data.image = "/uploads/" + req.file.filename;
             }
 
-            const product = await productService.createProduct(userData.data, req.user._id);
+            const product = await productService.createProduct(productData.data, req.user._id);
             console.log("Product created:", product);
             return ApiResponseHelper.success(res, product, "Product created successfully");
         } catch (error: Error | any | unknown) {

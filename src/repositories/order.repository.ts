@@ -39,8 +39,11 @@ export class OrderMongoRepository implements IOrderRepository {
         return updatedOrder;
     }
 
-    async updateStatus(id: string, status: string, paymentStatus?: string): Promise<IOrder | null> {
-        const updateData: any = { status };
+    async updateStatus(id: string, status?: string, paymentStatus?: string): Promise<IOrder | null> {
+        const updateData: any = {};
+        if (status) {
+            updateData.status = status;
+        }
         if (paymentStatus) {
             updateData.paymentStatus = paymentStatus;
         }
