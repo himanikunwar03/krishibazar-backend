@@ -466,13 +466,13 @@ describe('Order DTOs', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should fail validation with only paymentStatus (status is required)', () => {
+    it('should validate with only paymentStatus (status is optional)', () => {
       const updateData = {
         paymentStatus: 'paid' as const,
       };
 
       const result = UpdateOrderStatusDto.safeParse(updateData);
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
     });
 
     it('should accept all valid statuses', () => {

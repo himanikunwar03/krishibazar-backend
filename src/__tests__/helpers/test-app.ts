@@ -20,12 +20,38 @@ export async function setupTestApp() {
 }
 
 export async function teardownTestApp() {
-  // Disconnect from database
-  await mongoose.disconnect();
+  // Disconnect from database with timeout
+  try {
+    await Promise.race([
+      mongoose.disconnect(),
+      new Promise((resolve) => setTimeout(resolve, 5000))
+    ]);
+  } catch (err) {
+    // Ignore disconnect errors
+  }
+
+  // Force close all connections
+  try {
+    if (mongoose.connection.readyState !== 0) {
+      await Promise.race([
+        mongoose.connection.close(),
+        new Promise((resolve) => setTimeout(resolve, 3000))
+      ]);
+    }
+  } catch (err) {
+    // Ignore close errors
+  }
 
   // Stop the in-memory MongoDB server
   if (mongoServer) {
-    await mongoServer.stop();
+    try {
+      await Promise.race([
+        mongoServer.stop(),
+        new Promise((resolve) => setTimeout(resolve, 5000))
+      ]);
+    } catch (err) {
+      // Ignore stop errors
+    }
   }
 }
 

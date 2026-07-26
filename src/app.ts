@@ -41,6 +41,11 @@ const corsOptions = {
 }
 app.use(cors(corsOptions)); // enable CORS for all routes
 
+app.use((req: Request, _res: Response, next: NextFunction) => {
+    console.log(`${new Date().toISOString()} ${req.method} ${req.originalUrl}`);
+    next();
+});
+
 // Health check route
 app.get("/", (req, res) => {
     res.json({ status: "ok", message: "Server is running" });

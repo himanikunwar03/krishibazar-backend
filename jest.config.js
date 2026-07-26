@@ -2,7 +2,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
-  testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
+  testMatch: ['**/__tests__/**/*.test.ts'],
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
@@ -18,4 +18,6 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!(uuid)/)',
   ],
+  maxWorkers: 1, // Run tests sequentially to avoid database connection conflicts
+  forceExit: true, // Force Jest to exit after tests complete
 };

@@ -29,6 +29,10 @@ export class FavoriteService {
         return removed;
     }
 
+    async isFavorite(userId: string, productId: string): Promise<boolean> {
+        return favoriteRepository.exists(userId, productId);
+    }
+
     async getUserFavorites(userId: string) {
         const favorites = await favoriteRepository.findByUser(userId);
 

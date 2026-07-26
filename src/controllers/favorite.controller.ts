@@ -40,8 +40,8 @@ export class FavoriteController {
             }
 
             const { productId } = req.params;
-            const removed = await favoriteService.removeFavorite(req.user._id, productId);
-            return ApiResponseHelper.success(res, { removed }, "Product removed from favorites");
+            await favoriteService.removeFavorite(req.user._id, productId);
+            return ApiResponseHelper.success(res, { message: "Product removed from favorites" }, "Product removed from favorites");
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(
                 res,
@@ -58,7 +58,25 @@ export class FavoriteController {
             }
 
             const favorites = await favoriteService.getUserFavorites(req.user._id);
-            return ApiResponseHelper.success(res, favorites, "Favorites fetched successfully");
+            return ApiResponseHelper.success(res, { favorites }, "Favorites fetched successfully");
+        } catch (error: Error | any | unknown) {
+            return ApiResponseHelper.error(
+                res,
+                error.message || "Internal Server Error",
+                error.status || 500
+            );
+        }
+    }
+
+    async checkFavorite(req: Request, res: Response) {
+        try {
+            if (!req.user) {
+                return ApiResponseHelper.error(res, "User not authenticated", 401);
+            }
+
+            const { productId } = req.params;
+            const isFavorite = await favoriteService.isFavorite(req.user._id, productId);
+            return ApiResponseHelper.success(res, { isFavorite }, "Favorite status fetched successfully");
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(
                 res,

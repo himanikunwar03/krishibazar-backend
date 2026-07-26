@@ -33,8 +33,16 @@ describe('Favorite API Integration Tests', () => {
       .post('/api/v1/auth/register')
       .send(farmerData);
 
-    farmerToken = farmerResponse.body.data.token;
-    farmerId = farmerResponse.body.data.user._id;
+    farmerId = farmerResponse.body.data._id;
+
+    const farmerLoginResponse = await request(testApp)
+      .post('/api/v1/auth/login')
+      .send({
+        email: farmerData.email,
+        password: farmerData.password,
+      });
+
+    farmerToken = farmerLoginResponse.body.data.token;
 
     // Create a regular user
     const userData = {
@@ -48,8 +56,16 @@ describe('Favorite API Integration Tests', () => {
       .post('/api/v1/auth/register')
       .send(userData);
 
-    userToken = userResponse.body.data.token;
-    userId = userResponse.body.data.user._id;
+    userId = userResponse.body.data._id;
+
+    const userLoginResponse = await request(testApp)
+      .post('/api/v1/auth/login')
+      .send({
+        email: userData.email,
+        password: userData.password,
+      });
+
+    userToken = userLoginResponse.body.data.token;
 
     // Create a test product
     const productData = {
@@ -96,12 +112,12 @@ describe('Favorite API Integration Tests', () => {
         .expect(400);
     });
 
-    it('should fail to add favorite with invalid productId', async () => {
+    it('should fail to add favorite with non-existent productId', async () => {
       const response = await request(testApp)
         .post('/api/v1/favorites')
         .set('Authorization', `Bearer ${userToken}`)
         .send({ productId: '507f1f77bcf86cd799439011' })
-        .expect(400);
+        .expect(404);
     });
 
     it('should fail to add duplicate favorite', async () => {
@@ -158,7 +174,14 @@ describe('Favorite API Integration Tests', () => {
         .post('/api/v1/auth/register')
         .send(userData2);
 
-      const userToken2 = userResponse2.body.data.token;
+      const userLoginResponse2 = await request(testApp)
+        .post('/api/v1/auth/login')
+        .send({
+          email: userData2.email,
+          password: userData2.password,
+        });
+
+      const userToken2 = userLoginResponse2.body.data.token;
 
       const response = await request(testApp)
         .get('/api/v1/favorites')
@@ -232,7 +255,14 @@ describe('Favorite API Integration Tests', () => {
         .post('/api/v1/auth/register')
         .send(userData2);
 
-      const userToken2 = userResponse2.body.data.token;
+      const userLoginResponse2 = await request(testApp)
+        .post('/api/v1/auth/login')
+        .send({
+          email: userData2.email,
+          password: userData2.password,
+        });
+
+      const userToken2 = userLoginResponse2.body.data.token;
 
       const response = await request(testApp)
         .delete(`/api/v1/favorites/${productId}`)
@@ -365,8 +395,8 @@ describe('Favorite API Integration Tests', () => {
         .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
-      expect(response1.body.isFavorite).toBe(true);
-      expect(response2.body.isFavorite).toBe(true);
+      expect(response1.body.data.isFavorite).toBe(true);
+      expect(response2.body.data.isFavorite).toBe(true);
     });
   });
 });

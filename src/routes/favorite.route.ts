@@ -9,6 +9,7 @@ const favoriteController = new FavoriteController();
 favoriteRouter.use(authorizedMiddleware);
 
 favoriteRouter.get("/", favoriteController.getFavorites);
+favoriteRouter.get("/check/:productId", favoriteController.checkFavorite);
 favoriteRouter.post("/", favoriteController.addFavorite);
 favoriteRouter.delete("/:productId", favoriteController.removeFavorite);
 
